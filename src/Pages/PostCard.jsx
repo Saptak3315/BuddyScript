@@ -1,139 +1,88 @@
 import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { addPost,addComment, deletePost, editPost, likePost, replyToComment } from "../redux/authSlice";
 import Post from "./Post";
-export default function PostCard({po,sp,obj}) {
-    const [npo, snpo] = useState("");
-    const [comment,scomment]=useState("");
-    const [reply, sreply] = useState({});
-    const username= localStorage.getItem("liu");
-    const [tog,stog]=useState(false);
-    const [comments, setComments] = useState(obj.comments);
-    const [replyText, setReplyText] = useState({});
-    const [showLikers, setShowLikers] = useState(false);
-    useEffect(() => {
-    const storedPosts = JSON.parse(localStorage.getItem("po")) || [];
-    sp(storedPosts); 
-  }, []);
-  const posttoggle=(e)=>{
-    e.preventDefault();
-    let pt=tog;
-    stog(!pt);
-  }
-  useEffect(() => {
-    const storedComments = JSON.parse(localStorage.getItem("po")) || obj.comments; 
-    setComments(storedComments);
-  }, []);
-  const likePost = (id) => {
-    const updatedPosts = po.map((post) =>
-      post.id === id
-        ? {
-            ...post,
-            likers: post.likers.includes(username)
-              ? post.likers.filter((user) => user !== username) 
-              : [...post.likers, username],
-          }
-        : post
-    );
+export default function PostCard({obj}) {
+  const [npo, snpo] = useState("");
+  const [comment,scomment]=useState("");
+  const [reply, sreply] = useState({});
+  const [tog,stog]=useState(false);
+  const [commentText, setCommentText] = useState({});
+  const [replyText, setReplyText] = useState({});
+  const [showLikers, setShowLikers] = useState(false);
+    const po = useSelector((state) => state.auth.posts);
+    const dispatch = useDispatch();
+    const username = useSelector((state) => state.auth.currentUser);
+    //const posts = useSelector((state) => state.auth.posts);
   
-    sp(updatedPosts);
-    localStorage.setItem("po", JSON.stringify(updatedPosts));
-  };
-  
-  const handleEdit = (postId) => {
-    const postToEdit = po.find((post) => post.id === postId);
-    const newContent = prompt("Edit your post:", postToEdit.content);
-    if (newContent === null || newContent.trim() === "") {
-      alert("Please Write Something");
-      return;
-    }
-    const updatedPosts = po.map((post) =>
-      post.id === postId
-        ? { ...post, content: newContent }
-        : post
-    );
-    sp(updatedPosts); 
-    localStorage.setItem("po", JSON.stringify(updatedPosts)); 
-  
-    //alert("Post updated successfully!");
-  };
-      
-      const addComment = (pid) => {
-        if (!comment.trim()) {
-          alert("Please Write Something");
-          return;
-        }
-        const postId = pid.id;
-        const updatedPosts = po.map((post) =>
-          post.id === postId
-            ? {
-                ...post,
-                comments: [
-                  ...post.comments,
-                  {
-                    id: Date.now(),
-                    user: username,
-                    text: comment,
-                    replies: [],
-                  },
-                ],
-              }
-            : post
-        );
-        //alert("Your Comment is posted");
-        localStorage.setItem("po", JSON.stringify(updatedPosts));
-        sp(updatedPosts);
-        scomment("");
-      };
-      const deletePost = (postId) => {
-        const postToDelete = po.find((post)=>post.id===postId);
-        if (postToDelete.user !== username) {
-            alert("You can only delete your own posts!");
-            return;
-        }
-        const updatedPosts = po.filter((post)=>post.id!==postId);
-        sp(updatedPosts);
-        localStorage.setItem("po", JSON.stringify(updatedPosts));
-        //alert("Your Post is deleted");
+    const handleLike = (postId) => {
+      dispatch(likePost({ postId, username }));
     };
-
+    const posttoggle=(e)=>{
+      e.preventDefault();
+      let pt=tog;
+      stog(!pt);
+    }
+    const handleEdit = (postId) => {
+      const postToEdit = po.find((post) => post.id === postId);
+    
+      if (!postToEdit) {
+        alert("Post not found!");
+        return;
+      }
+      const newContent = prompt("Edit your post:", postToEdit.content);
+      if (newContent === null || newContent.trim() === "") {
+        alert("Please write something.");
+        return;
+      }
+      dispatch(editPost({ postId, newContent }));
+    };
+  
+    const handleDelete = (postId, postUser) => {
+      dispatch(deletePost(postId));
+    };
+  
+    const handleComment = (postId) => {
+      if (!commentText[postId]?.trim()) {
+        alert("Please write something.");
+        return;
+      }
+    
+      dispatch(
+        addComment({
+          postId,
+          comment: {
+            id: Date.now(),
+            user: username,
+            text: commentText[postId],
+            replies: [],
+          },
+        })
+      );
+      setCommentText((prev) => ({
+        ...prev,
+        [postId]: "",
+      }));
+    };
+    
     const hlr = (commentId, value) => {
       setReplyText((prev) => ({
         ...prev,
         [commentId]: value,
       }));
     };
-    const replyToComment = (postId, commentId) => {
-      const reply = replyText[commentId];
-      if (!reply) {
-        alert("Please write a reply")
-         return
-      };
-      const updatedPosts = po.map((post) =>
-        post.id === postId
-          ? {
-              ...post,
-              comments: post.comments.map((comment) =>
-                comment.id === commentId
-                  ? {
-                      ...comment,
-                      replies: [
-                        ...(comment.replies || []),
-                        { user: username, text: reply }, 
-                      ],
-                    }
-                  : comment
-              ),
-            }
-          : post
-      );
-      sp(updatedPosts);
-      localStorage.setItem("po", JSON.stringify(updatedPosts));
+    const handleReply = (postId, commentId, replyText) => {
+      if (!replyText.trim()) {
+        alert("Please write something.");
+        return;
+      }
+      dispatch(replyToComment({ postId, commentId, reply: { user: username, text: replyText } }));
       setReplyText((prev) => ({
         ...prev,
         [commentId]: "",
       }));
-    
-      //alert("Replied");
     };
+  
   return (
     <div class="_feed_inner_timeline_post_area _b_radious6 _padd_b24 _padd_t24 _mar_b16">
       <div class="_feed_inner_timeline_content _padd_r24 _padd_l24">
@@ -145,7 +94,12 @@ export default function PostCard({po,sp,obj}) {
             <div class="_feed_inner_timeline_post_box_txt">
               <h4 class="_feed_inner_timeline_post_box_title">{obj.user}</h4>
               <p class="_feed_inner_timeline_post_box_para">
-              {obj.dif} {obj.dif > 1 ? "minutes":"minute"} ago .<a href="#0">Public</a>
+                {(() => {
+                  const currt = Date.now();
+                  let dif = Math.floor((currt - obj.timeofcreate) / 1000 / 60);
+                  return `${dif} ${dif > 1 ? "minutes" : "minute"} ago .`;
+                })()} 
+                <a href="#0">Public</a>
               </p>
             </div>
           </div>
@@ -262,7 +216,7 @@ export default function PostCard({po,sp,obj}) {
                       Edit Post
                     </a>
                 </li>
-                <li hidden={obj.user !== username} class="_feed_timeline_dropdown_item" onClick={() => deletePost(obj.id)}>
+                <li hidden={obj.user !== username} class="_feed_timeline_dropdown_item" onClick={() =>handleDelete(obj.id)}>
                   <a href="" class="_feed_timeline_dropdown_link">
                     <span>
                       <svg
@@ -325,7 +279,7 @@ export default function PostCard({po,sp,obj}) {
       <div class="_feed_inner_timeline_reaction">
       <button
   className="_feed_inner_timeline_reaction_emoji _feed_reaction _feed_reaction_active"
-  onClick={() => likePost(obj.id)} 
+  onClick={() => handleLike(obj.id)} 
 >
   <span className="_feed_inner_timeline_reaction_link">
     <span>
@@ -395,16 +349,21 @@ export default function PostCard({po,sp,obj}) {
                   class="_comment_img"
                 />
               </div>
-              <div class="_feed_inner_comment_box_content_txt">
-                <textarea
-                  class="form-control _comment_textarea"
-                  placeholder="Write a comment"
-                  value={comment}
-                  onChange={(e) => scomment(e.target.value)}
-                  id="floatingTextarea1"
-                ></textarea>
-                <button type="button" onClick={()=>addComment(obj)}><span>💬</span></button>
-              </div>
+              <div className="_feed_inner_comment_box_content_txt">
+  <textarea
+    className="form-control _comment_textarea"
+    placeholder="Write a comment"
+    value={commentText[obj.id] || ""}
+    onChange={(e) =>
+      setCommentText((prev) => ({ ...prev, [obj.id]: e.target.value }))
+    }
+    id="floatingTextarea1"
+  ></textarea>
+  <button type="button" onClick={() => handleComment(obj.id)}>
+    <span>💬</span>
+  </button>
+</div>
+
             </div>
             <div class="_feed_inner_comment_box_icon">
               <button class="_feed_inner_comment_box_icon_btn">
@@ -560,7 +519,7 @@ export default function PostCard({po,sp,obj}) {
               <button
                 type="button"
                 className="_feed_inner_comment_box_icon_btn"
-                onClick={() => replyToComment(obj.id, comment.id)}
+                onClick={() => handleReply(obj.id, comment.id,replyText[comment.id])}
               >
                 Reply
               </button>

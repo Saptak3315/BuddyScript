@@ -1,38 +1,31 @@
 import { useState } from "react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import Feed from "./Feed";
-import Register from "./Register";
+import { useDispatch } from "react-redux";
+import { register, login } from "../redux/authSlice";
 import "../style.css";
 
 function Login() {
   const [username, setUsername] = useState("");
   const [pass, setPass] = useState("");
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const reg = () => {
+  const handleRegister = () => {
     if (!username || !pass) {
       alert("Please enter your username and password.");
       return;
     }
-    let users = JSON.parse(localStorage.getItem("users")) || {};
-    if (users[username]) {
-      alert("Username already exists.");
-      return;
-    }
-    users[username] = { password: pass, friends:[],posts:[] };
-    localStorage.setItem("users", JSON.stringify(users));
-    alert("Registration successful");
+    dispatch(register({ username, password: pass }));
   };
 
-  const li = () => {
-    let users = JSON.parse(localStorage.getItem("users")) || {};
-    if (users[username] && users[username].password === pass) {
-      localStorage.setItem("liu", username);
-      navigate("/Feed");
-    } else {
-      alert("Invalid username or password");
+  const handleLogin = () => {
+    if (!username || !pass) {
+      alert("Please enter your username and password.");
+      return;
     }
+    dispatch(login({ username, password: pass, navigate }));
+    navigate("/feed");
   };
 
   return (
@@ -123,12 +116,12 @@ function Login() {
                     <div className="row">
                       <div className="col-lg-12 col-md-12 col-xl-12 col-sm-12">
                         <div className="_social_login_form_btn _mar_t40 _mar_b60">
-                          <button type="button" className="_social_login_form_btn_link _btn1" onClick={li}>
+                          <button type="button" className="_social_login_form_btn_link _btn1" onClick={handleLogin}>
                             Login now
                           </button>
                         </div>
                         <div className="_social_login_form_btn _mar_t10">
-                          <button type="button" className="_social_login_form_btn_link _btn2" onClick={reg}>
+                          <button type="button" className="_social_login_form_btn_link _btn2" onClick={handleRegister}>
                             Register
                           </button>
                         </div>
@@ -138,10 +131,10 @@ function Login() {
                   <div className="row">
                     <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12">
                       <div className="_social_login_bottom_txt">
-                      <p>
-                        Don't have an account?{" "}
-                        <a href="#0" onClick={() => navigate("/")}>Create New Account</a>
-                      </p>
+                        <p>
+                          Don't have an account?{" "}
+                          <a href="#0" onClick={() => navigate("/")}>Create New Account</a>
+                        </p>
                       </div>
                     </div>
                   </div>

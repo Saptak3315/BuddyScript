@@ -40,21 +40,18 @@ export default function PostCard({po,sp,obj}) {
   
   const handleEdit = (postId) => {
     const postToEdit = po.find((post) => post.id === postId);
+    if (!postToEdit) return;
+  
     const newContent = prompt("Edit your post:", postToEdit.content);
     if (newContent === null || newContent.trim() === "") {
       alert("Please Write Something");
       return;
     }
-    const updatedPosts = po.map((post) =>
-      post.id === postId
-        ? { ...post, content: newContent }
-        : post
-    );
-    sp(updatedPosts); 
-    localStorage.setItem("po", JSON.stringify(updatedPosts)); 
   
-    //alert("Post updated successfully!");
+    // Dispatch Redux action to update post
+    dispatch(editPost({ postId, newContent }));
   };
+  
       
       const addComment = (pid) => {
         if (!comment.trim()) {

@@ -1,37 +1,36 @@
 import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { addPost } from "../redux/authSlice";
 import PostCard from "./PostCard";
 export default function Post() {
-     const [po, sp] = useState([]);
-      const [npo, snpo] = useState("");
-      const [comment, scomment] = useState("");
-      const [reply, sreply] = useState({});
-      const username= localStorage.getItem("liu");
-      const [users, setUsers] = useState(() => JSON.parse(localStorage.getItem("users")) || {});
-      useEffect(() => {
-        const storedPosts = JSON.parse(localStorage.getItem("po")) || [];
-        sp(storedPosts); 
-      }, []);
-      const addPost = () => {
-        if (!npo.trim()) {
-            alert("Please Write Something");
-            return;
-        }
-        const np = {
-            id: Date.now(),
-            user: username,
-            content: npo,
-            likers: [],
-            comments: [],
-            timeofcreate:Date.now(),
-        };
-        const previousPosts = JSON.parse(localStorage.getItem("po")) || [];
-        const updatedPosts = [np, ...previousPosts];
-        sp(updatedPosts);
-        localStorage.setItem("po", JSON.stringify(updatedPosts));
-        //alert("Your Post is Posted");
-        window.location.reload();
-        snpo("");
+  const dispatch = useDispatch();
+
+  const username = localStorage.getItem("liu");
+  const posts = useSelector((state) => state.auth.posts);  // Fetch posts from Redux
+
+  const [newPost, setNewPost] = React.useState("");  // Local state for new post input
+
+  const handleAddPost = () => {
+    if (!newPost.trim()) {
+      alert("Please write something.");
+      return;
+    }
+    
+    const post = {
+      id: Date.now(),
+      user: username,
+      content: newPost,
+      likers: [],
+      comments: [],
+      timeofcreate: Date.now(),
     };
+
+    // Dispatch action to add post to Redux store
+    dispatch(addPost(post));
+
+    // Reset local input state
+    setNewPost("");
+  };
   return (
     <div className="container _custom_container">
       <div class="_layout_inner_wrap">
@@ -304,8 +303,8 @@ export default function Post() {
                         class="form-control _textarea"
                         placeholder="Leave a comment here"
                         id="floatingTextarea"
-                        value={npo}
-                        onChange={(e) => snpo(e.target.value)}
+                        value={newPost}
+                        onChange={(e) => setNewPost(e.target.value)}
                       ></textarea>
                       <label
                         class="_feed_textarea_label"
@@ -428,7 +427,7 @@ export default function Post() {
                     </div>
                     <div class="_feed_inner_text_area_btn">
                       <button
-                        onClick={addPost}
+                        onClick={handleAddPost}
                         type="button"
                         class="_feed_inner_text_area_btn_link"
                       >
@@ -569,14 +568,14 @@ export default function Post() {
                     </div>
                   </div>
                 </div>
-                {po?.map((ele, index) => {
+                {posts?.map((ele, index) => {
                   const currt = Date.now();
                   let dif = currt - ele.timeofcreate;
                   dif = dif / 1000;
                   dif = dif / 60;
                   dif = Math.floor(dif);
-                  ele.dif=dif;
-                  return <PostCard obj={ele} po={po} sp={sp} key={index} />
+                  //ele.dif=dif;
+                  return <PostCard obj={ele} key={index} />
                 })}
               </div>
             </div>

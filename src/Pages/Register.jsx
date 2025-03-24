@@ -1,37 +1,34 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Login from './Login';
-import '../style.css';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { register } from "../redux/authSlice"; 
+import "../style.css";
 
 function Register() {
-  const [username, setUsername] = useState('');
-  const [pass, setPass] = useState('');
-  const [rpass, setRpass] = useState('');
+  const [username, setUsername] = useState("");
+  const [pass, setPass] = useState("");
+  const [rpass, setRpass] = useState("");
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const reg = (event) => {
+  const handleRegister = (event) => {
     event.preventDefault();
     if (!username || !pass || !rpass) {
-      alert('Please enter your username and password.');
+      alert("Please enter your username and password.");
       return;
     }
     if (pass !== rpass) {
-      alert('Passwords do not match.');
+      alert("Passwords do not match.");
       return;
     }
-    let users = JSON.parse(localStorage.getItem('users')) || {};
-    if (users[username]) {
-      alert('Username already exists.');
-      return;
-    }
-    users[username] = { password: pass, friends: [], posts: [] };
-    localStorage.setItem('users', JSON.stringify(users));
-    alert('Registration successful!');
-    navigate('/login');
+    dispatch(register({ username, password: pass })); 
+    navigate("/login"); 
   };
-  const login = () => {
-    navigate('/login');
+
+  const handleLogin = () => {
+    navigate("/login");
   };
+
   return (
     <>
       <section className="_social_registration_wrapper _layout_main_wrapper">
@@ -49,15 +46,12 @@ function Register() {
                 <div className="_social_registration_content">
                   <p className="_social_registration_content_para">Get Started Now</p>
                   <h4 className="_social_registration_content_title">Registration</h4>
-
                   <button type="button" className="_social_registration_content_btn">
                     <img src="assets/images/google.svg" alt="Google" className="_google_img" />
                     <span>Register with Google</span>
                   </button>
-
                   <div className="_social_registration_content_bottom_txt"> <span>Or</span> </div>
-
-                  <form className="_social_registration_form" onSubmit={reg}>
+                  <form className="_social_registration_form" onSubmit={handleRegister}>
                     <div className="row">
                       <div className="col-xl-12">
                         <div className="_social_registration_form_input">
@@ -66,12 +60,11 @@ function Register() {
                             type="text"
                             className="form-control _social_registration_input"
                             value={username}
-                            onChange={(e)=>setUsername(e.target.value)}
+                            onChange={(e) => setUsername(e.target.value)}
                             required
                           />
                         </div>
                       </div>
-
                       <div className="col-xl-12">
                         <div className="_social_registration_form_input">
                           <label className="_social_registration_label">Password</label>
@@ -79,12 +72,11 @@ function Register() {
                             type="password"
                             className="form-control _social_registration_input"
                             value={pass}
-                            onChange={(e)=>setPass(e.target.value)}
+                            onChange={(e) => setPass(e.target.value)}
                             required
                           />
                         </div>
                       </div>
-
                       <div className="col-xl-12">
                         <div className="_social_registration_form_input">
                           <label className="_social_registration_label">Repeat Password</label>
@@ -92,13 +84,12 @@ function Register() {
                             type="password"
                             className="form-control _social_registration_input"
                             value={rpass}
-                            onChange={(e)=>setRpass(e.target.value)}
+                            onChange={(e) => setRpass(e.target.value)}
                             required
                           />
                         </div>
                       </div>
                     </div>
-
                     <div className="row">
                       <div className="col-lg-12">
                         <div className="form-check _social_registration_form_check">
@@ -107,7 +98,6 @@ function Register() {
                         </div>
                       </div>
                     </div>
-
                     <div className="row">
                       <div className="col-lg-12">
                         <div className="_social_registration_form_btn">
@@ -116,17 +106,15 @@ function Register() {
                       </div>
                     </div>
                   </form>
-
                   <div className="row">
                     <div className="col-xl-12">
                       <div className="_social_registration_bottom_txt">
                         <p>Already have an account? 
-                          <button onClick={login} className="login-link">Login Now</button>
+                          <button onClick={handleLogin} className="login-link">Login Now</button>
                         </p>
                       </div>
                     </div>
                   </div>
-
                 </div>
               </div>
             </div>
